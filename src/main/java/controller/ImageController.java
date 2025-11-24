@@ -6,11 +6,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,8 +19,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import model.BO.JobBO;
 import model.Bean.JobBean;
-import model.Bean.ResultBean;
-import service.util.IOUtil;
+import model.BO.ImageStoreBO;
 import service.worker.JobQueueManager;
 
 @WebServlet("/ImageController")
@@ -36,17 +33,25 @@ public class ImageController extends HttpServlet {
 	}
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	    long userId = getUserId(req);
+		long userId = getUserId(req);
+		if (userId == -1) {
+			resp.sendRedirect(req.getContextPath() + "/auth/login");
+			return;
+		}
 
-	    List<JobBean> jobs = jobBO.listJobsByUser(userId, 0, 100);
-	    req.setAttribute("jobs", jobs);
+		List<JobBean> jobs = jobBO.listJobsByUser(userId, 0, 100);
+		req.setAttribute("jobs", jobs);
 
-	    req.getRequestDispatcher("/image-upload.jsp").forward(req, resp);
+		req.getRequestDispatcher("/image-upload.jsp").forward(req, resp);
 	}
 
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		try {
 			long userId = getUserId(req);
+			if (userId == -1) {
+				resp.sendRedirect(req.getContextPath() + "/auth/login");
+				return;
+			}
 			int k = Integer.parseInt(req.getParameter("k"));
 			Part file = req.getPart("file");
 			if (file == null || file.getSize() == 0)
@@ -58,20 +63,17 @@ public class ImageController extends HttpServlet {
 			if ((long) img.getWidth() * img.getHeight() > 15_000_000L)
 				throw new IllegalArgumentException("Ảnh quá lớn");
 
-//			ServletContext ctx = getServletContext();
-			Path base = IOUtil.ensureBaseDir(null);
-			Path userDir = IOUtil.ensureUserDir(base, userId);
+			Path base = ImageStoreBO.ensureBaseDir(null);
+			Path userDir = ImageStoreBO.ensureUserDir(base, userId);
 
 			JobBean job = jobBO.createImageJob(userId, k);
 
-			// Lưu ảnh input vào disk để có thể khôi phục sau này
 			Files.createDirectories(userDir);
 			String inputFileName = "image-input-" + job.getId() + ".png";
 			Path inputPath = userDir.resolve(inputFileName);
 			File inputFile = inputPath.toFile();
 			ImageIO.write(img, "png", inputFile);
 
-			// Cập nhật input_path vào database
 			String inputAbsPath = inputPath.toAbsolutePath().toString().replace('\\', '/');
 			jobBO.updateJobInputPath(job.getId(), inputAbsPath);
 			job.setInputPath(inputAbsPath);
@@ -100,11 +102,13 @@ public class ImageController extends HttpServlet {
 	}
 
 	private long getUserId(HttpServletRequest req) {
-		HttpSession s = req.getSession(true);
+		HttpSession s = req.getSession(false);
+		if (s == null) {
+			return -1;
+		}
 		Object v = s.getAttribute("uid");
 		if (v == null) {
-			s.setAttribute("uid", 1L);
-			return 1L;
+			return -1;
 		}
 		return (Long) v;
 	}

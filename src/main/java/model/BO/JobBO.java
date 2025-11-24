@@ -58,4 +58,12 @@ public class JobBO {
 	public void updateJobInputPath(long jobId, String inputPath) {
 		jobDAO.updateInputPath(jobId, inputPath);
 	}
+
+	public List<ResultBean> listAllResults() {
+		return resultDAO.listAll();
+	}
+
+	public List<ResultBean> listResultsByUser(long userId) {
+		return resultDAO.listByUser(userId);
+	}
 }

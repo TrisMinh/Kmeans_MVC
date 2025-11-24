@@ -5,6 +5,10 @@ String ctx = request.getContextPath();
 JobBean job = (JobBean) request.getAttribute("job");
 ResultBean result = (ResultBean) request.getAttribute("result");
 String outRel = (result != null) ? result.getOutputRelPath() : null;
+String userRole = (String) session.getAttribute("userRole");
+boolean isAdmin = "ADMIN".equals(userRole);
+String userEmail = (String) session.getAttribute("userEmail");
+String welcomeName = userEmail != null ? userEmail.split("@")[0] : "User";
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -31,6 +35,9 @@ nav {
 	border-radius: 8px;
 	margin-bottom: 24px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 nav a {
@@ -45,6 +52,31 @@ nav a {
 
 nav a:hover {
 	background: #f0f0f0;
+}
+
+.nav-links {
+	display: flex;
+	align-items: center;
+	gap: 0;
+}
+
+.nav-right {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+nav .welcome {
+	color: #4b5563;
+	font-weight: 500;
+}
+
+nav .logout {
+	color: #ef4444;
+}
+
+nav .logout:hover {
+	background: #fef2f2;
 }
 
 h2 {
@@ -203,8 +235,17 @@ img.result {
 <body>
 	<div class="container">
 		<nav>
-			<a href="<%=ctx%>/image-upload.jsp">Nén ảnh</a> <a
-				href="<%=ctx%>/jobs">Jobs</a>
+			<div class="nav-links">
+				<a href="<%=ctx%>/ImageController">Nén ảnh</a>
+				<% if (isAdmin) { %>
+					<a href="<%=ctx%>/images">Ảnh</a>
+					<a href="<%=ctx%>/users">User</a>
+				<% } %>
+			</div>
+			<div class="nav-right">
+				<span class="welcome">Welcome <%=welcomeName%></span>
+				<a href="<%=ctx%>/auth/logout" class="logout">Đăng xuất</a>
+			</div>
 		</nav>
 
 		<h2>
