@@ -11,6 +11,8 @@ public class ResultBean {
 	private int nPoints;
 	private String summary;
 	private Instant createdAt;
+	private long ownerUserId;
+	private String ownerEmail;
 
 	public long getId() {
 		return id;
@@ -74,5 +76,21 @@ public class ResultBean {
 
 	public void setCreatedAt(Instant createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public long getOwnerUserId() {
+		return ownerUserId;
+	}
+
+	public void setOwnerUserId(long ownerUserId) {
+		this.ownerUserId = ownerUserId;
+	}
+
+	public String getOwnerEmail() {
+		return ownerEmail;
+	}
+
+	public void setOwnerEmail(String ownerEmail) {
+		this.ownerEmail = ownerEmail;
 	}
 }

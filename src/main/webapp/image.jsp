@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.*,model.Bean.ResultBean"%>
+<%@ page import="java.util.*,model.Bean.ResultBean,model.Bean.UserBean"%>
 <%@ page import="java.time.*, java.time.format.DateTimeFormatter" %>
 <%
 String ctx = request.getContextPath();
@@ -7,6 +7,9 @@ DateTimeFormatter F = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 ZoneId Z = ZoneOffset.UTC;
 Object resultsObj = request.getAttribute("results");
 List<?> results = resultsObj instanceof List ? (List<?>) resultsObj : java.util.Collections.emptyList();
+UserBean filteredUser = (UserBean) request.getAttribute("filteredUser");
+String userEmail = (String) session.getAttribute("userEmail");
+String welcomeName = userEmail != null ? userEmail.split("@")[0] : "User";
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -28,6 +31,9 @@ List<?> results = resultsObj instanceof List ? (List<?>) resultsObj : java.util.
             border-radius: 8px; 
             margin-bottom: 24px; 
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         nav a { 
             margin-right: 16px; 
@@ -39,12 +45,21 @@ List<?> results = resultsObj instanceof List ? (List<?>) resultsObj : java.util.
             transition: background 0.2s; 
         }
         nav a:hover { background: #f0f0f0; }
-        nav {
+        .nav-links {
             display: flex;
             align-items: center;
+            gap: 0;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        nav .welcome {
+            color: #4b5563;
+            font-weight: 500;
         }
         nav .logout {
-            margin-left: auto;
             color: #ef4444;
         }
         nav .logout:hover {
@@ -93,9 +108,14 @@ List<?> results = resultsObj instanceof List ? (List<?>) resultsObj : java.util.
             padding: 16px;
         }
         .image-info h3 {
-            margin: 0 0 8px 0;
+            margin: 0 0 4px 0;
             font-size: 16px;
             color: #374151;
+        }
+        .image-owner {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
         }
         .image-meta {
             font-size: 13px;
@@ -136,22 +156,58 @@ List<?> results = resultsObj instanceof List ? (List<?>) resultsObj : java.util.
             padding: 48px 20px;
             color: #9ca3af;
         }
+        .filter-info {
+            font-size: 14px;
+            color: #4b5563;
+            margin-left: 8px;
+        }
+        .filter-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+        .btn-secondary {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            text-decoration: none;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-secondary:hover {
+            background: #f3f4f6;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <nav>
-            <div style="display: flex; gap: 0;">
+            <div class="nav-links">
                 <a href="<%=ctx%>/ImageController">Nén ảnh</a>
                 <a href="<%=ctx%>/images">Ảnh</a>
                 <a href="<%=ctx%>/users">User</a>
             </div>
-            <a href="<%=ctx%>/auth/logout" class="logout">Đăng xuất</a>
+            <div class="nav-right">
+                <span class="welcome">Welcome <%=welcomeName%></span>
+                <a href="<%=ctx%>/auth/logout" class="logout">Đăng xuất</a>
+            </div>
         </nav>
 
         <div class="card">
-            <div class="card-header">
-                <h2>Danh sách Ảnh</h2>
+            <div class="card-header" style="display:flex; flex-direction:column; gap:4px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <h2>Danh sách Ảnh</h2>
+                    <% if (filteredUser != null) { %>
+                        <span class="filter-info">User #<%=filteredUser.getId()%> - <%=filteredUser.getEmail()%></span>
+                    <% } %>
+                </div>
+                <% if (filteredUser != null) { %>
+                <div class="filter-actions">
+                    <a href="<%=ctx%>/images" class="btn-secondary">Xem tất cả ảnh</a>
+                </div>
+                <% } %>
             </div>
             <%
             if (results.isEmpty()) {
@@ -169,11 +225,13 @@ List<?> results = resultsObj instanceof List ? (List<?>) resultsObj : java.util.
                         displayCreated = F.format(result.getCreatedAt().atZone(Z));
                     }
                     String imagePath = ctx + "/files/" + result.getOutputRelPath();
+                    String ownerEmail = result.getOwnerEmail();
                 %>
                 <div class="image-item">
                     <img src="<%=imagePath%>" alt="Result image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'200\'%3E%3Crect fill=\'%23f3f4f6\' width=\'300\' height=\'200\'/%3E%3Ctext fill=\'%239ca3af\' font-family=\'sans-serif\' font-size=\'14\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dominant-baseline=\'middle\'%3EẢnh không tìm thấy%3C/text%3E%3C/svg%3E'">
                     <div class="image-info">
                         <h3>Job #<%=result.getJobId()%></h3>
+                        <div class="image-owner">Bởi: <%=ownerEmail != null ? ownerEmail : "Không xác định"%></div>
                         <div class="image-meta">
                             <div>Kích thước: <%=result.getWidth()%> x <%=result.getHeight()%></div>
                             <div>Điểm: <%=result.getnPoints()%></div>

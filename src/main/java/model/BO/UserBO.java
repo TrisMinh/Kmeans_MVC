@@ -47,16 +47,13 @@ public class UserBO {
 
 		String storedHash = user.getPasswordHash();
 		boolean isHashed = storedHash != null && storedHash.length() == 64 && storedHash.matches("[0-9a-f]+");
-		
-		if (isHashed) {
-			String passwordHash = hashPassword(password);
-			if (!passwordHash.equals(storedHash)) {
-				throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
-			}
-		} else {
-			if (!password.equals(storedHash)) {
-				throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
-			}
+		if (!isHashed) {
+			throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
+		}
+
+		String passwordHash = hashPassword(password);
+		if (!passwordHash.equals(storedHash)) {
+			throw new IllegalArgumentException("Email hoặc mật khẩu không đúng");
 		}
 
 		return user;

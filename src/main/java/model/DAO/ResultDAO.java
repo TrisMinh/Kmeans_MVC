@@ -44,7 +44,7 @@ public class ResultDAO {
 			try (ResultSet rs = ps.executeQuery()) {
 				if (!rs.next())
 					return null;
-				return mapResultSetToResult(rs);
+				return mapResultSetToResult(rs, false);
 			}
 		} catch (SQLException e) {
 			throw new RuntimeException("find result failed", e);
@@ -52,13 +52,15 @@ public class ResultDAO {
 	}
 
 	public List<ResultBean> listAll() {
-		String sql = "SELECT id, job_id, output_rel_path, width, height, n_points, summary, created_at "
-				+ "FROM results ORDER BY created_at DESC";
+		String sql = "SELECT r.id, r.job_id, r.output_rel_path, r.width, r.height, r.n_points, r.summary, r.created_at, "
+				+ "j.user_id AS owner_user_id, u.email AS owner_email "
+				+ "FROM results r JOIN jobs j ON r.job_id = j.id JOIN users u ON j.user_id = u.id "
+				+ "ORDER BY r.created_at DESC";
 		List<ResultBean> list = new ArrayList<>();
 		try (Connection c = DBConnect.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
 			try (ResultSet rs = ps.executeQuery()) {
 				while (rs.next()) {
-					list.add(mapResultSetToResult(rs));
+					list.add(mapResultSetToResult(rs, true));
 				}
 			}
 		} catch (SQLException e) {
@@ -67,7 +69,26 @@ public class ResultDAO {
 		return list;
 	}
 
-	private ResultBean mapResultSetToResult(ResultSet rs) throws SQLException {
+	public List<ResultBean> listByUser(long userId) {
+		String sql = "SELECT r.id, r.job_id, r.output_rel_path, r.width, r.height, r.n_points, r.summary, r.created_at, "
+				+ "j.user_id AS owner_user_id, u.email AS owner_email "
+				+ "FROM results r JOIN jobs j ON r.job_id = j.id "
+				+ "JOIN users u ON j.user_id = u.id WHERE j.user_id=? ORDER BY r.created_at DESC";
+		List<ResultBean> list = new ArrayList<>();
+		try (Connection c = DBConnect.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+			ps.setLong(1, userId);
+			try (ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					list.add(mapResultSetToResult(rs, true));
+				}
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException("list results by user failed", e);
+		}
+		return list;
+	}
+
+	private ResultBean mapResultSetToResult(ResultSet rs, boolean includeOwner) throws SQLException {
 		ResultBean r = new ResultBean();
 		r.setId(rs.getLong("id"));
 		r.setJobId(rs.getLong("job_id"));
@@ -79,6 +100,10 @@ public class ResultDAO {
 		Timestamp ts = rs.getTimestamp("created_at");
 		if (ts != null)
 			r.setCreatedAt(ts.toInstant());
+		if (includeOwner) {
+			r.setOwnerUserId(rs.getLong("owner_user_id"));
+			r.setOwnerEmail(rs.getString("owner_email"));
+		}
 		return r;
 	}
 }

@@ -9,6 +9,8 @@ Object usersObj = request.getAttribute("users");
 List<?> users = usersObj instanceof List ? (List<?>) usersObj : java.util.Collections.emptyList();
 String error = (String) request.getAttribute("error");
 UserBean editUser = (UserBean) request.getAttribute("user");
+String userEmail = (String) session.getAttribute("userEmail");
+String welcomeName = userEmail != null ? userEmail.split("@")[0] : "User";
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -30,6 +32,9 @@ UserBean editUser = (UserBean) request.getAttribute("user");
             border-radius: 8px; 
             margin-bottom: 24px; 
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         nav a { 
             margin-right: 16px; 
@@ -41,6 +46,26 @@ UserBean editUser = (UserBean) request.getAttribute("user");
             transition: background 0.2s; 
         }
         nav a:hover { background: #f0f0f0; }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        nav .welcome {
+            color: #4b5563;
+            font-weight: 500;
+        }
+        nav .logout {
+            color: #ef4444;
+        }
+        nav .logout:hover {
+            background: #fef2f2;
+        }
         nav {
             display: flex;
             align-items: center;
@@ -172,6 +197,13 @@ UserBean editUser = (UserBean) request.getAttribute("user");
         tbody tr:hover {
             background: #f9fafb;
         }
+        .user-row {
+            cursor: pointer;
+        }
+        .user-row:focus-within {
+            outline: 2px solid #c7d2fe;
+            outline-offset: -2px;
+        }
         .badge {
             display: inline-block;
             padding: 4px 10px;
@@ -222,12 +254,15 @@ UserBean editUser = (UserBean) request.getAttribute("user");
 <body>
     <div class="container">
         <nav>
-            <div style="display: flex; gap: 0;">
+            <div class="nav-links">
                 <a href="<%=ctx%>/ImageController">Nén ảnh</a>
                 <a href="<%=ctx%>/images">Ảnh</a>
                 <a href="<%=ctx%>/users">User</a>
             </div>
-            <a href="<%=ctx%>/auth/logout" class="logout">Đăng xuất</a>
+            <div class="nav-right">
+                <span class="welcome">Welcome <%=welcomeName%></span>
+                <a href="<%=ctx%>/auth/logout" class="logout">Đăng xuất</a>
+            </div>
         </nav>
 
         <div class="main-grid">
@@ -308,7 +343,7 @@ UserBean editUser = (UserBean) request.getAttribute("user");
                                     displayCreated = F.format(user.getCreatedAt().atZone(Z));
                                 }
                         %>
-                        <tr>
+                        <tr class="user-row" data-href="<%=ctx%>/images?userId=<%=user.getId()%>">
                             <td><strong>#<%=user.getId()%></strong></td>
                             <td><%=user.getEmail()%></td>
                             <td>
@@ -319,12 +354,12 @@ UserBean editUser = (UserBean) request.getAttribute("user");
                             <td><%=displayCreated%></td>
                             <td>
                                 <div class="actions">
-                                    <a href="<%=ctx%>/users?action=edit&id=<%=user.getId()%>" class="btn-edit">Sửa</a>
-                                    <form method="post" action="<%=ctx%>/users" style="display:inline; margin:0;">
+                                    <a href="<%=ctx%>/users?action=edit&id=<%=user.getId()%>" class="btn-edit" onclick="event.stopPropagation();">Sửa</a>
+                                    <form method="post" action="<%=ctx%>/users" style="display:inline; margin:0;" onclick="event.stopPropagation();">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<%=user.getId()%>">
                                         <button type="submit" class="btn-delete" 
-                                            onclick="return confirm('Bạn có chắc muốn xóa user này?')">Xóa</button>
+                                            onclick="event.stopPropagation(); return confirm('Bạn có chắc muốn xóa user này?')">Xóa</button>
                                     </form>
                                 </div>
                             </td>
@@ -338,6 +373,16 @@ UserBean editUser = (UserBean) request.getAttribute("user");
             </div>
         </div>
     </div>
+    <script>
+        document.querySelectorAll('.user-row').forEach(function(row) {
+            row.addEventListener('click', function() {
+                var href = row.getAttribute('data-href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
 

@@ -10,14 +10,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.BO.JobBO;
+import model.BO.UserBO;
 import model.Bean.ResultBean;
+import model.Bean.UserBean;
 
 @WebServlet("/images")
 public class ImageListController extends HttpServlet {
 	private JobBO jobBO;
+	private UserBO userBO;
 
 	public void init() {
 		this.jobBO = new JobBO();
+		this.userBO = new UserBO();
 	}
 
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -34,7 +38,26 @@ public class ImageListController extends HttpServlet {
 			return;
 		}
 
-		List<ResultBean> results = jobBO.listAllResults();
+		List<ResultBean> results;
+		String userIdParam = req.getParameter("userId");
+		if (userIdParam != null && !userIdParam.isEmpty()) {
+			try {
+				long targetUserId = Long.parseLong(userIdParam);
+				results = jobBO.listResultsByUser(targetUserId);
+				UserBean filteredUser = userBO.findById(targetUserId);
+				if (filteredUser == null) {
+					resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+					return;
+				}
+				req.setAttribute("filteredUser", filteredUser);
+			} catch (NumberFormatException ex) {
+				resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+				return;
+			}
+		} else {
+			results = jobBO.listAllResults();
+		}
+
 		req.setAttribute("results", results);
 		req.getRequestDispatcher("/image.jsp").forward(req, resp);
 	}
