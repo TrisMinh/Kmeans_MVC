@@ -1,11 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.*,model.Bean.JobBean,model.Bean.ResultBean"%>
-<%@ page import="java.time.*, java.time.format.DateTimeFormatter" %>
-<%
-  // formatter cho cột "Tạo lúc"
-  DateTimeFormatter F = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-  ZoneId Z = ZoneOffset.UTC;
-%>
+<%@ page import="java.time.*" %>
 <%
 String ctx = request.getContextPath();
 Object jobsObj = request.getAttribute("jobs");
@@ -99,7 +94,7 @@ img.thumb:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.
 							status = j.getStatus();
 							type = "IMAGE";
 							if (j.getCreatedAt() != null) {
-								displayCreated = F.format(j.getCreatedAt().atZone(Z)); // format đẹp
+								displayCreated = j.getCreatedAt().toString();
 							}
 						} else {
 							Map m = (Map) o;
@@ -109,8 +104,7 @@ img.thumb:hover { transform: scale(1.1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.
 							type = String.valueOf(m.get("type"));
 							Object c = m.get("createdAt");
 							if (c != null) {
-								try { displayCreated = F.format(Instant.parse(String.valueOf(c)).atZone(Z)); }
-								catch (Exception ignore) { displayCreated = String.valueOf(c); }
+								displayCreated = String.valueOf(c);
 							}
 							Object rp = m.get("outputRelPath");
 							if (rp != null) outRel = String.valueOf(rp);

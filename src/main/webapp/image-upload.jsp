@@ -1,10 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.*,model.Bean.JobBean"%>
-<%@ page import="java.time.*, java.time.format.DateTimeFormatter" %>
+<%@ page import="java.time.*" %>
 <%
 String ctx = request.getContextPath();
-DateTimeFormatter F = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-ZoneId Z = ZoneOffset.UTC;
 Object jobsObj = request.getAttribute("jobs");
 List<?> jobs = jobsObj instanceof List ? (List<?>) jobsObj : java.util.Collections.emptyList();
 String error = (String) request.getAttribute("error");
@@ -234,6 +232,7 @@ String welcomeName = userEmail != null ? userEmail.split("@")[0] : "User";
     <div class="container">
         <nav>
             <div class="nav-links">
+                <a href="<%=ctx%>/welcome.jsp">Trang chính</a>
                 <a href="<%=ctx%>/ImageController">Nén ảnh</a>
                 <% if (isAdmin) { %>
                     <a href="<%=ctx%>/images">Ảnh</a>
@@ -308,7 +307,7 @@ String welcomeName = userEmail != null ? userEmail.split("@")[0] : "User";
                                 
                                 String displayCreated = "";
                                 if (job.getCreatedAt() != null) {
-                                    displayCreated = F.format(job.getCreatedAt().atZone(Z));
+                                    displayCreated = job.getCreatedAt().toString();
                                 }
                         %>
                         <tr>

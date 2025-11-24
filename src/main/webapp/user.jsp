@@ -1,10 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.*,model.Bean.UserBean"%>
-<%@ page import="java.time.*, java.time.format.DateTimeFormatter" %>
+<%@ page import="java.time.*" %>
 <%
 String ctx = request.getContextPath();
-DateTimeFormatter F = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-ZoneId Z = ZoneOffset.UTC;
+if (session == null || session.getAttribute("uid") == null) {
+    response.sendRedirect(ctx + "/auth/login");
+    return;
+}
+
+String userRole = (String) session.getAttribute("userRole");
+if (userRole == null || !"ADMIN".equals(userRole)) {
+    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Chỉ ADMIN mới được truy cập trang này");
+    return;
+}
+
 Object usersObj = request.getAttribute("users");
 List<?> users = usersObj instanceof List ? (List<?>) usersObj : java.util.Collections.emptyList();
 String error = (String) request.getAttribute("error");
@@ -255,6 +264,7 @@ String welcomeName = userEmail != null ? userEmail.split("@")[0] : "User";
     <div class="container">
         <nav>
             <div class="nav-links">
+                <a href="<%=ctx%>/welcome.jsp">Trang chính</a>
                 <a href="<%=ctx%>/ImageController">Nén ảnh</a>
                 <a href="<%=ctx%>/images">Ảnh</a>
                 <a href="<%=ctx%>/users">User</a>
@@ -340,7 +350,7 @@ String welcomeName = userEmail != null ? userEmail.split("@")[0] : "User";
                                 UserBean user = (UserBean) obj;
                                 String displayCreated = "";
                                 if (user.getCreatedAt() != null) {
-                                    displayCreated = F.format(user.getCreatedAt().atZone(Z));
+                                    displayCreated = user.getCreatedAt().toString();
                                 }
                         %>
                         <tr class="user-row" data-href="<%=ctx%>/images?userId=<%=user.getId()%>">

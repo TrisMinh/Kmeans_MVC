@@ -68,7 +68,7 @@ public class AuthController extends HttpServlet {
 			session.setAttribute("userEmail", user.getEmail());
 			session.setAttribute("userRole", user.getRole());
 
-			resp.sendRedirect(ctx + "/ImageController");
+			resp.sendRedirect(ctx + "/welcome.jsp");
 		} catch (IllegalArgumentException e) {
 			req.setAttribute("err", e.getMessage());
 			req.getRequestDispatcher("/login.jsp").forward(req, resp);
@@ -91,7 +91,7 @@ public class AuthController extends HttpServlet {
 			session.setAttribute("userEmail", user.getEmail());
 			session.setAttribute("userRole", user.getRole());
 
-			resp.sendRedirect(ctx + "/ImageController");
+			resp.sendRedirect(ctx + "/welcome.jsp");
 		} catch (IllegalArgumentException e) {
 			req.setAttribute("err", e.getMessage());
 			req.getRequestDispatcher("/register.jsp").forward(req, resp);

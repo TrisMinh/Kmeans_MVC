@@ -236,6 +236,7 @@ img.result {
 	<div class="container">
 		<nav>
 			<div class="nav-links">
+				<a href="<%=ctx%>/welcome.jsp">Trang chính</a>
 				<a href="<%=ctx%>/ImageController">Nén ảnh</a>
 				<% if (isAdmin) { %>
 					<a href="<%=ctx%>/images">Ảnh</a>
