@@ -7,6 +7,7 @@ import java.util.concurrent.BlockingQueue;
 
 import javax.imageio.ImageIO;
 
+import model.BO.ImageStoreBO;
 import model.BO.JobBO;
 import model.Bean.JobBean;
 
@@ -47,8 +48,8 @@ public class ImageProcessingWorker implements Runnable{
 	private void processJob(JobBean job) {
 		JobBO jobBO = new JobBO();
 		try {
-			Path baseDir = service.util.IOUtil.ensureBaseDir(null);
-			Path userDir = service.util.IOUtil.ensureUserDir(baseDir, job.getUserId());
+			Path baseDir = ImageStoreBO.ensureBaseDir(null);
+			Path userDir = ImageStoreBO.ensureUserDir(baseDir, job.getUserId());
 			
 			String inputPath = job.getInputPath();
 			if (inputPath != null && !inputPath.isEmpty()) {

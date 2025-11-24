@@ -8,14 +8,12 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import model.BO.KmeansProcBO.KMeansResult;
 import model.Bean.JobBean;
 import model.Bean.ResultBean;
 import model.DAO.JobDAO;
 import model.DAO.ResultDAO;
-import service.algo.Diem;
-import service.algo.KMeansResult;
-import service.algo.Kmeans;
-import service.util.ImageUtil;
+import model.Bean.DiemBean;
 
 public class KMeansImageBO {
 	private final JobDAO jobDAO;
@@ -32,11 +30,11 @@ public class KMeansImageBO {
 		int n = w * h;
 		long t0 = System.currentTimeMillis();
 
-		List<Diem> ds = ImageUtil.imageToDiemList(img);
-		Kmeans km = new Kmeans(job.getK(), n, 3);
+		List<DiemBean> ds = ImageProcBO.imageToDiemList(img);
+		KmeansProcBO km = new KmeansProcBO(job.getK(), n, 3);
 		KMeansResult rs = km.run(ds);
 
-		BufferedImage outImg = ImageUtil.labelsToImage(w, h, rs.labels, rs.centers);
+		BufferedImage outImg = ImageProcBO.labelsToImage(w, h, rs.labels, rs.centers);
 
 		Files.createDirectories(userDir);
 		String fileName = "image-result-" + job.getId() + ".png";
